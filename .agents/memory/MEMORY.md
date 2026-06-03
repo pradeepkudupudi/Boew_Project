@@ -1,0 +1,3 @@
+- [BOEW Admin Seeding](boew-admin-seed.md) — Admin password must be re-seeded via seed.mjs using pnpm store paths; bcrypt hash in DB can go stale.
+- [FAISS 1.9.0 Import Bug](faiss-bug.md) — faiss-cpu 1.9.0 crashes on import (SuperKMeans NameError); guard all faiss imports with try/except.
+- [Wouter Route Pattern](wouter-routes.md) — wouter's Route component has no `render` prop; use named wrapper components instead.
