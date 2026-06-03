@@ -1,0 +1,146 @@
+Build a complete full-stack web application from scratch titled:
+
+"BOEW: A Content-Based Image Retrieval Scheme Using Bag-of-Encrypted-Words in Cloud Computing"
+
+Objective:
+The application should allow users to upload an image and retrieve the most visually similar images from a dataset with high accuracy while maintaining security using the Bag-of-Encrypted-Words concept.
+
+Technology Stack:
+
+* Frontend: React.js
+* Backend: Node.js + Express.js
+* AI/ML Service: Python (Flask/FastAPI)
+* Database: MongoDB
+* Image Processing: OpenCV, Pillow
+* Deep Learning: TensorFlow/Keras or PyTorch
+* Similarity Search: FAISS
+* Cloud Storage: Local storage initially, cloud-ready architecture
+
+Functional Requirements:
+
+1. Dataset Management
+
+   * Create dataset upload functionality.
+   * Store dataset images in a dedicated folder.
+   * Generate feature vectors automatically for all uploaded images.
+   * Update feature index when new images are added.
+
+2. Image Feature Extraction
+
+   * Use a pretrained deep learning model such as ResNet50.
+   * Extract feature embeddings from every image.
+   * Store embeddings separately for fast retrieval.
+
+3. Bag-of-Encrypted-Words Module
+
+   * Implement BOEW architecture.
+   * Encrypt image feature representations before storage.
+   * Decrypt only during authorized retrieval.
+   * Maintain security without affecting similarity matching.
+
+4. Image Retrieval Engine
+
+   * User uploads a query image.
+   * Extract image features.
+   * Compare against dataset embeddings.
+   * Use FAISS for nearest-neighbor search.
+   * Retrieve Top-10 most similar images.
+   * Sort by similarity score.
+
+5. Similarity Metrics
+
+   * Cosine Similarity
+   * Euclidean Distance
+   * Compare performance automatically.
+
+6. User Interface
+   Pages:
+
+   * Home Page
+   * Dataset Upload Page
+   * Query Image Upload Page
+   * Retrieval Results Page
+   * Admin Dashboard
+
+7. Results Page
+   Display:
+
+   * Uploaded query image
+   * Top similar images
+   * Similarity percentage
+   * Retrieval time
+   * Ranking order
+
+8. Performance Evaluation
+   Calculate:
+
+   * Precision
+   * Recall
+   * F1 Score
+   * Mean Average Precision (mAP)
+
+9. Security
+
+   * Secure image uploads
+   * Authentication system
+   * JWT-based login
+   * Encrypted image feature storage
+
+10. Database Collections
+    Users
+    Images
+    FeatureVectors
+    RetrievalHistory
+
+11. API Endpoints
+
+Authentication:
+POST /api/auth/register
+POST /api/auth/login
+
+Dataset:
+POST /api/dataset/upload
+GET /api/dataset/images
+
+Retrieval:
+POST /api/retrieve
+GET /api/history
+
+12. Folder Structure
+
+project/
+│
+├── frontend/
+├── backend/
+├── ml_service/
+├── dataset/
+├── encrypted_features/
+├── faiss_index/
+├── uploads/
+└── docs/
+
+13. Additional Features
+
+* Drag-and-drop image upload
+* Progress indicators
+* Responsive design
+* Retrieval history
+* Download results option
+
+14. Accuracy Goal
+    Achieve high retrieval accuracy using deep-learning embeddings instead of traditional handcrafted image features.
+
+Deliverables:
+
+* Complete frontend code
+* Complete backend code
+* Complete Python ML service
+* Database schema
+* API integration
+* BOEW encryption implementation
+* FAISS indexing
+* Project setup instructions
+* README documentation
+* Deployment guide
+
+Generate the project step-by-step and provide all required source code files from scratch.

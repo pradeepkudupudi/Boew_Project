@@ -1,22 +1,31 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: BOEW Content-Based Image Retrieval API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication operations
+  - name: dataset
+    description: Dataset management
+  - name: retrieval
+    description: Image retrieval operations
+  - name: history
+    description: Retrieval history
+  - name: admin
+    description: Admin dashboard
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,13 +33,607 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserRegistration"
+      responses:
+        "201":
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserLogin"
+      responses:
+        "200":
+          description: Logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current authenticated user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /dataset/images:
+    get:
+      operationId: listDatasetImages
+      tags: [dataset]
+      summary: List all dataset images
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: List of dataset images
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DatasetImagesResponse"
+
+  /dataset/upload:
+    post:
+      operationId: uploadDatasetImages
+      tags: [dataset]
+      summary: Upload images to dataset
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/DatasetUploadInput"
+      responses:
+        "201":
+          description: Images uploaded and indexed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DatasetUploadResponse"
+        "400":
+          description: Invalid files
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /dataset/images/{id}:
+    delete:
+      operationId: deleteDatasetImage
+      tags: [dataset]
+      summary: Remove an image from the dataset
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /dataset/stats:
+    get:
+      operationId: getDatasetStats
+      tags: [dataset]
+      summary: Get dataset statistics
+      responses:
+        "200":
+          description: Dataset stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DatasetStats"
+
+  /retrieve:
+    post:
+      operationId: retrieveSimilarImages
+      tags: [retrieval]
+      summary: Upload a query image and retrieve similar images
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/RetrievalQueryInput"
+      responses:
+        "200":
+          description: Retrieval results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RetrievalResult"
+        "400":
+          description: Invalid image
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: ML service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /history:
+    get:
+      operationId: listHistory
+      tags: [history]
+      summary: Get retrieval history for authenticated user
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        "200":
+          description: Retrieval history list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HistoryListResponse"
+
+  /history/{id}:
+    get:
+      operationId: getHistoryItem
+      tags: [history]
+      summary: Get a single retrieval history item
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: History item with results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HistoryItem"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /admin/stats:
+    get:
+      operationId: getAdminStats
+      tags: [admin]
+      summary: Get admin dashboard statistics
+      responses:
+        "200":
+          description: Admin stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminStats"
+
+  /admin/ml-status:
+    get:
+      operationId: getMlStatus
+      tags: [admin]
+      summary: Get ML service status and index info
+      responses:
+        "200":
+          description: ML status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MlStatus"
+
+  /admin/rebuild-index:
+    post:
+      operationId: rebuildIndex
+      tags: [admin]
+      summary: Trigger FAISS index rebuild
+      responses:
+        "200":
+          description: Rebuild started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IndexRebuildResponse"
+
 components:
   schemas:
     HealthStatus:
       type: object
+      required: [status]
       properties:
         status:
           type: string
-      required:
-        - status
 
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+
+    User:
+      type: object
+      required: [id, email, name, role, createdAt]
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+        name:
+          type: string
+        role:
+          type: string
+          enum: [user, admin]
+        createdAt:
+          type: string
+
+    AuthResponse:
+      type: object
+      required: [token, user]
+      properties:
+        token:
+          type: string
+        user:
+          $ref: "#/components/schemas/User"
+
+    UserRegistration:
+      type: object
+      required: [email, password, name]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 6
+        name:
+          type: string
+          minLength: 1
+
+    UserLogin:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    DatasetImage:
+      type: object
+      required: [id, filename, originalName, path, uploadedAt, hasFeatures]
+      properties:
+        id:
+          type: integer
+        filename:
+          type: string
+        originalName:
+          type: string
+        path:
+          type: string
+        category:
+          type: ["string", "null"]
+        uploadedAt:
+          type: string
+        hasFeatures:
+          type: boolean
+        fileSize:
+          type: ["integer", "null"]
+
+    DatasetImagesResponse:
+      type: object
+      required: [images, total, page, limit]
+      properties:
+        images:
+          type: array
+          items:
+            $ref: "#/components/schemas/DatasetImage"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    DatasetUploadInput:
+      type: object
+      required: [category]
+      properties:
+        category:
+          type: string
+
+    DatasetUploadResponse:
+      type: object
+      required: [uploaded, indexed, failed]
+      properties:
+        uploaded:
+          type: integer
+        indexed:
+          type: integer
+        failed:
+          type: integer
+        images:
+          type: array
+          items:
+            $ref: "#/components/schemas/DatasetImage"
+
+    DatasetStats:
+      type: object
+      required: [totalImages, indexedImages, categories, totalSizeMb]
+      properties:
+        totalImages:
+          type: integer
+        indexedImages:
+          type: integer
+        categories:
+          type: array
+          items:
+            type: object
+            required: [name, count]
+            properties:
+              name:
+                type: string
+              count:
+                type: integer
+        totalSizeMb:
+          type: number
+
+    RetrievalQueryInput:
+      type: object
+      required: [topK, metric]
+      properties:
+        topK:
+          type: integer
+          default: 10
+        metric:
+          type: string
+          enum: [cosine, euclidean]
+          default: cosine
+
+    SimilarImage:
+      type: object
+      required: [rank, imageId, filename, path, similarityScore, distance, metric]
+      properties:
+        rank:
+          type: integer
+        imageId:
+          type: integer
+        filename:
+          type: string
+        path:
+          type: string
+        category:
+          type: ["string", "null"]
+        similarityScore:
+          type: number
+        distance:
+          type: number
+        metric:
+          type: string
+
+    PerformanceMetrics:
+      type: object
+      required: [precision, recall, f1Score, mAP, retrievalTimeMs]
+      properties:
+        precision:
+          type: number
+        recall:
+          type: number
+        f1Score:
+          type: number
+        mAP:
+          type: number
+        retrievalTimeMs:
+          type: number
+
+    RetrievalResult:
+      type: object
+      required: [historyId, queryImagePath, results, metrics, retrievalTimeMs]
+      properties:
+        historyId:
+          type: integer
+        queryImagePath:
+          type: string
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/SimilarImage"
+        metrics:
+          $ref: "#/components/schemas/PerformanceMetrics"
+        retrievalTimeMs:
+          type: number
+
+    HistoryEntry:
+      type: object
+      required: [id, queryImagePath, topK, metric, retrievalTimeMs, createdAt, resultCount]
+      properties:
+        id:
+          type: integer
+        queryImagePath:
+          type: string
+        topK:
+          type: integer
+        metric:
+          type: string
+        retrievalTimeMs:
+          type: number
+        createdAt:
+          type: string
+        resultCount:
+          type: integer
+        precision:
+          type: ["number", "null"]
+        recall:
+          type: ["number", "null"]
+        f1Score:
+          type: ["number", "null"]
+        mAP:
+          type: ["number", "null"]
+
+    HistoryListResponse:
+      type: object
+      required: [history, total, page, limit]
+      properties:
+        history:
+          type: array
+          items:
+            $ref: "#/components/schemas/HistoryEntry"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    HistoryItem:
+      type: object
+      required: [id, queryImagePath, topK, metric, retrievalTimeMs, createdAt, results, metrics]
+      properties:
+        id:
+          type: integer
+        queryImagePath:
+          type: string
+        topK:
+          type: integer
+        metric:
+          type: string
+        retrievalTimeMs:
+          type: number
+        createdAt:
+          type: string
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/SimilarImage"
+        metrics:
+          $ref: "#/components/schemas/PerformanceMetrics"
+
+    AdminStats:
+      type: object
+      required: [totalUsers, totalImages, indexedImages, totalRetrievals, avgRetrievalTimeMs, avgPrecision, avgRecall, recentActivity]
+      properties:
+        totalUsers:
+          type: integer
+        totalImages:
+          type: integer
+        indexedImages:
+          type: integer
+        totalRetrievals:
+          type: integer
+        avgRetrievalTimeMs:
+          type: number
+        avgPrecision:
+          type: number
+        avgRecall:
+          type: number
+        recentActivity:
+          type: array
+          items:
+            type: object
+            required: [date, retrievals]
+            properties:
+              date:
+                type: string
+              retrievals:
+                type: integer
+
+    MlStatus:
+      type: object
+      required: [online, indexSize, modelLoaded, encryptionEnabled, lastIndexedAt]
+      properties:
+        online:
+          type: boolean
+        indexSize:
+          type: integer
+        modelLoaded:
+          type: boolean
+        encryptionEnabled:
+          type: boolean
+        lastIndexedAt:
+          type: ["string", "null"]
+
+    IndexRebuildResponse:
+      type: object
+      required: [message, indexedCount]
+      properties:
+        message:
+          type: string
+        indexedCount:
+          type: integer
