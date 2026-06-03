@@ -60,7 +60,7 @@ router.post("/dataset/upload", requireAuth, datasetUpload.array("images", 100), 
 
       // Try indexing via ML service
       try {
-        await axios.post(`${ML_SERVICE_URL}/index`, { image_path: file.path, image_id: img.id });
+        await axios.post(`${ML_SERVICE_URL}/index`, { image_path: file.path, image_id: img.id, category });
         await db.update(datasetImagesTable).set({ hasFeatures: true }).where(eq(datasetImagesTable.id, img.id));
         img.hasFeatures = true;
         indexed++;
