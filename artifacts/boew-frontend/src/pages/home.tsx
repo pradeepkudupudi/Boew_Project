@@ -10,12 +10,12 @@ import {
 import { useAuth } from "@/hooks/use-auth";
 import {
   Terminal, Shield, Users, Activity, HardDrive,
-  Lock, CheckCircle, XCircle, AlertCircle, Database,
-  Cpu, Network, Code, Server,
+  Lock, CheckCircle, AlertCircle, Database,
+  Network, Code, Server,
 } from "lucide-react";
 import { format } from "date-fns";
 
-function formatBytes(mb: number): string {
+function formatSizeMb(mb: number): string {
   if (mb >= 1024) return `${(mb / 1024).toFixed(1)} GB`;
   if (mb < 1) return `${Math.round(mb * 1024)} KB`;
   return `${mb.toFixed(1)} MB`;
@@ -58,9 +58,12 @@ export default function Home() {
 
   const mlAny = mlStatus as Record<string, unknown> | undefined;
   const faissAvailable = !!(mlAny?.faissAvailable);
-  const extractor: string = typeof mlAny?.extractor === "string"
-    ? mlAny.extractor.toUpperCase()
-    : mlStatus?.modelLoaded ? "RESNET50" : "HOG+COLOR";
+  const extractor: string =
+    typeof mlAny?.extractor === "string"
+      ? mlAny.extractor.toUpperCase()
+      : mlStatus?.modelLoaded
+      ? "RESNET50"
+      : "HOG+COLOR";
   const featureDims = extractor.includes("HOG") ? "2700" : "2048";
 
   const gridStyle = {
@@ -69,8 +72,9 @@ export default function Home() {
     backgroundSize: "40px 40px",
   };
 
-  const stat = (val: string | number | null | undefined, loading: boolean) =>
-    loading ? "..." : (val ?? "—");
+  const loading = (isAdmin: boolean) => (isAdmin ? adminLoading : dsLoading);
+  const orDash = <T,>(v: T | null | undefined, l: boolean) =>
+    l ? "..." : (v != null ? String(v) : "—");
 
   const totalImages = isAdmin ? adminStats?.totalImages : datasetStats?.totalImages;
   const indexedImages = isAdmin ? adminStats?.indexedImages : datasetStats?.indexedImages;
@@ -78,34 +82,42 @@ export default function Home() {
   const stats = [
     {
       label: "ENCRYPTED_VECTORS",
-      val: stat(indexedImages, isAdmin ? adminLoading : dsLoading),
-      sub: `OF ${stat(totalImages, isAdmin ? adminLoading : dsLoading)} TOTAL`,
+      val: orDash(indexedImages, loading(isAdmin)),
+      sub: "IN AES-CBC INDEX",
       icon: Database,
     },
     {
       label: "ACTIVE_OPERATIVES",
-      val: stat(isAdmin ? adminStats?.totalUsers : null, adminLoading),
+      val: orDash(isAdmin ? adminStats?.totalUsers : null, adminLoading),
       sub: "REGISTERED USERS",
       icon: Users,
     },
     {
       label: "QUERIES_EXECUTED",
-      val: stat(isAdmin ? adminStats?.totalRetrievals : null, adminLoading),
+      val: orDash(isAdmin ? adminStats?.totalRetrievals : null, adminLoading),
       sub: "TOTAL RETRIEVALS",
       icon: Activity,
     },
     {
       label: "AVG_LATENCY",
       val: isAdmin
-        ? (adminLoading ? "..." : adminStats?.avgRetrievalTimeMs != null ? `${adminStats.avgRetrievalTimeMs.toFixed(1)}ms` : "—")
+        ? adminLoading
+          ? "..."
+          : adminStats?.avgRetrievalTimeMs != null
+          ? `${adminStats.avgRetrievalTimeMs.toFixed(1)}ms`
+          : "—"
         : "—",
-      sub: "PER RETRIEVAL",
+      sub: "LAST 24H",
       icon: Network,
     },
     {
-      label: "DATASET_VOLUME",
-      val: dsLoading ? "..." : datasetStats?.totalSizeMb != null ? formatBytes(datasetStats.totalSizeMb) : "—",
-      sub: "ON ENCRYPTED DISK",
+      label: "DATASET_SIZE",
+      val: dsLoading
+        ? "..."
+        : datasetStats?.totalSizeMb != null
+        ? formatSizeMb(datasetStats.totalSizeMb)
+        : "—",
+      sub: "ENCRYPTED ON DISK",
       icon: HardDrive,
     },
   ];
@@ -124,18 +136,18 @@ export default function Home() {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 text-primary font-bold text-xl tracking-wider">
             <Terminal className="w-5 h-5" />
-            <span className="uppercase tracking-widest">SYSTEM_OVERVIEW</span>
+            <span>{`>_ BOEW_SYS`}</span>
           </div>
           <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 border border-primary/20 rounded-sm">
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-green-500 text-xs font-bold tracking-widest">SYS_ONLINE</span>
+            <span className="text-green-500 text-xs font-bold tracking-widest">ONLINE</span>
           </div>
         </div>
-        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+        <div className="flex items-center gap-3 text-sm text-muted-foreground">
           <div className="px-3 py-1 border border-border bg-card rounded-sm flex items-center gap-2">
-            <Shield className="w-3 h-3 text-primary" />
-            <span className="text-foreground tracking-widest uppercase">
-              OPERATIVE: {user?.role ?? "GUEST"}
+            <Shield className="w-4 h-4 text-primary" />
+            <span className="text-foreground tracking-widest">
+              OPERATIVE: {user?.role?.toUpperCase() ?? "GUEST"}
             </span>
           </div>
           <div className="px-3 py-1 border border-border bg-card rounded-sm tracking-widest">
@@ -152,10 +164,10 @@ export default function Home() {
             className="bg-card border border-border p-4 rounded-sm flex flex-col gap-2 relative overflow-hidden group"
           >
             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-              <s.icon className="w-10 h-10 text-primary" />
+              <s.icon className="w-12 h-12 text-primary" />
             </div>
             <div className="text-xs text-primary font-bold tracking-widest">{s.label}</div>
-            <div className="text-2xl text-foreground mt-1 font-bold tracking-wide">{s.val}</div>
+            <div className="text-3xl text-foreground mt-1">{s.val}</div>
             <div className="text-xs text-muted-foreground mt-auto pt-2 border-t border-border/50 tracking-widest">
               {s.sub}
             </div>
@@ -166,38 +178,33 @@ export default function Home() {
       {/* Main 3-column grid */}
       <div className="relative z-10 grid grid-cols-12 gap-6">
 
-        {/* Col 1: Encryption Status */}
+        {/* Col 1 (4/12): ENCRYPTION_STATUS */}
         <div className="col-span-12 lg:col-span-4 bg-card border border-border rounded-sm flex flex-col">
           <div className="p-4 border-b border-border bg-background/50 flex items-center gap-2">
             <Lock className="w-4 h-4 text-primary" />
             <span className="text-sm font-bold text-primary tracking-widest">ENCRYPTION_STATUS</span>
           </div>
           <div className="p-4 flex flex-col gap-4 flex-1">
-            <StatusRow label="AES-CBC KEY STATUS" value="ACTIVE" color="green" icon="dot" />
-            <StatusRow label="KEY DERIVATION" value="SHA-256" color="primary" icon={<CheckCircle className="w-4 h-4 text-primary" />} />
+            <StatusRow label="AES-CBC KEY STATUS" value="ACTIVE" dot="green" />
+            <StatusRow label="KEY DERIVATION" value="SHA-256" checkmark />
             <StatusRow
-              label="SEARCH INDEX"
-              value={mlLoading ? "..." : faissAvailable ? "FAISS" : "NUMPY"}
+              label="FAISS FALLBACK"
+              value={mlLoading ? "..." : faissAvailable ? "FAISS" : "NumPy"}
+              dot={faissAvailable ? "green" : undefined}
+              alert={!faissAvailable && !mlLoading}
               color={faissAvailable ? "green" : "orange"}
-              icon={faissAvailable ? "dot-green" : "alert"}
             />
             <StatusRow
-              label="DEEP EXTRACTOR"
-              value={mlLoading ? "..." : mlStatus?.modelLoaded ? "RESNET50 ✓" : "OFFLINE"}
+              label="TF EXTRACTOR"
+              value={mlLoading ? "..." : mlStatus?.modelLoaded ? "ACTIVE" : "OFFLINE"}
+              dot={mlStatus?.modelLoaded ? "green" : "red"}
               color={mlStatus?.modelLoaded ? "green" : "red"}
-              icon={mlStatus?.modelLoaded ? "dot-green" : "dot-red"}
             />
             <StatusRow
               label="HOG EXTRACTOR"
               value={mlLoading ? "..." : !mlStatus?.modelLoaded ? "ACTIVE" : "STANDBY"}
+              dot={!mlStatus?.modelLoaded ? "green" : "muted"}
               color={!mlStatus?.modelLoaded ? "green" : "muted"}
-              icon={!mlStatus?.modelLoaded ? "dot-green" : "dot-muted"}
-            />
-            <StatusRow
-              label="ENCRYPTION ENGINE"
-              value={mlLoading ? "..." : mlStatus?.encryptionEnabled !== false ? "READY" : "DISABLED"}
-              color={mlStatus?.encryptionEnabled !== false ? "green" : "red"}
-              icon={mlStatus?.encryptionEnabled !== false ? "dot-green" : "dot-red"}
             />
 
             <div className="mt-2 pt-4 border-t border-border flex flex-col gap-1">
@@ -213,13 +220,13 @@ export default function Home() {
                 <span>100%</span>
               </div>
               <div className="h-1 w-full bg-background rounded-full overflow-hidden">
-                <div className="h-full bg-primary w-full shadow-[0_0_8px_rgba(0,128,255,0.6)]" />
+                <div className="h-full bg-primary w-full shadow-[0_0_10px_rgba(0,128,255,0.8)]" />
               </div>
             </div>
           </div>
         </div>
 
-        {/* Col 2: Recent Retrievals */}
+        {/* Col 2 (5/12): RECENT_RETRIEVALS */}
         <div className="col-span-12 lg:col-span-5 bg-card border border-border rounded-sm flex flex-col">
           <div className="p-4 border-b border-border bg-background/50 flex items-center gap-2">
             <Activity className="w-4 h-4 text-primary" />
@@ -238,22 +245,22 @@ export default function Home() {
               <table className="w-full text-xs text-left whitespace-nowrap">
                 <thead className="bg-background/80 text-muted-foreground border-b border-border">
                   <tr>
-                    <th className="px-4 py-3 font-normal tracking-wider">TIMESTAMP</th>
-                    <th className="px-4 py-3 font-normal tracking-wider">QUERY_ID</th>
-                    <th className="px-4 py-3 font-normal tracking-wider">METRIC</th>
-                    <th className="px-4 py-3 font-normal tracking-wider">RESULTS</th>
-                    <th className="px-4 py-3 font-normal tracking-wider">TIME</th>
-                    <th className="px-4 py-3 font-normal tracking-wider">STATUS</th>
+                    <th className="px-4 py-3 font-normal">TIMESTAMP</th>
+                    <th className="px-4 py-3 font-normal">QUERY_ID</th>
+                    <th className="px-4 py-3 font-normal">TOP_MATCH</th>
+                    <th className="px-4 py-3 font-normal">SIM_SCORE</th>
+                    <th className="px-4 py-3 font-normal">STATUS</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {recentHistory.map((row) => (
                     <tr key={row.id} className="hover:bg-primary/5 transition-colors">
                       <td className="px-4 py-3 text-muted-foreground">{formatTs(row.createdAt)}</td>
-                      <td className="px-4 py-3 font-bold text-foreground">Q_{String(row.id).padStart(4, "0")}</td>
-                      <td className="px-4 py-3 text-muted-foreground uppercase">{row.metric}</td>
-                      <td className="px-4 py-3 text-primary">{row.resultCount}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{row.retrievalTimeMs.toFixed(1)}ms</td>
+                      <td className="px-4 py-3 font-bold">Q_{String(row.id).padStart(4, "0")}</td>
+                      <td className="px-4 py-3 text-muted-foreground">—</td>
+                      <td className="px-4 py-3 text-primary">
+                        {row.mAP != null ? row.mAP.toFixed(3) : "—"}
+                      </td>
                       <td className="px-4 py-3">
                         <span className="text-green-500 flex items-center gap-1">
                           <CheckCircle className="w-3 h-3" /> COMPLETED
@@ -267,11 +274,11 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Col 3: Dataset Distribution */}
+        {/* Col 3 (3/12): DATASET_DISTRIBUTION */}
         <div className="col-span-12 lg:col-span-3 bg-card border border-border rounded-sm flex flex-col">
           <div className="p-4 border-b border-border bg-background/50 flex items-center gap-2">
             <Database className="w-4 h-4 text-primary" />
-            <span className="text-sm font-bold text-primary tracking-widest">DATASET_DIST</span>
+            <span className="text-sm font-bold text-primary tracking-widest">DATASET_DISTRIBUTION</span>
           </div>
           <div className="p-4 flex flex-col gap-4 flex-1">
             {dsLoading ? (
@@ -283,16 +290,14 @@ export default function Home() {
                 <div key={cat.name} className="flex flex-col gap-1">
                   <div className="flex justify-between text-xs tracking-widest">
                     <span className="uppercase text-foreground">{cat.name || "UNCLASSIFIED"}</span>
-                    <span className="text-muted-foreground">{cat.count}</span>
+                    <span className="text-muted-foreground">{cat.count} images</span>
                   </div>
-                  <div className="relative h-2 w-full bg-background border border-border/50 overflow-hidden rounded-sm">
+                  <div className="flex items-center">
                     <div
-                      className="absolute inset-y-0 left-0 bg-primary rounded-sm"
-                      style={{
-                        width: `${(cat.count / maxCatCount) * 100}%`,
-                        boxShadow: "0 0 8px rgba(0,128,255,0.5)",
-                      }}
+                      className="h-2 bg-primary shadow-[0_0_8px_rgba(0,128,255,0.6)] rounded-sm"
+                      style={{ width: `${(cat.count / maxCatCount) * 100}%` }}
                     />
+                    <div className="flex-1 h-2 bg-background border border-border rounded-sm -ml-1" style={{ zIndex: -1 }} />
                   </div>
                 </div>
               ))
@@ -305,18 +310,18 @@ export default function Home() {
       <div className="relative z-10 border-t border-border pt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground">
         <div className="flex items-center gap-2">
           <Code className="w-4 h-4" />
-          <span className="tracking-widest">
+          <span>
             BOEW_ENGINE v1.0 // ENCRYPTED RETRIEVAL ACTIVE // {extractor} FEATURES: {featureDims} DIMS
           </span>
         </div>
         <div className="flex gap-2">
-          <span className="px-2 py-1 bg-card border border-border rounded-sm text-primary tracking-widest">
+          <span className="px-2 py-1 bg-card border border-border rounded-sm text-primary">
             [ENCRYPTION: AES-CBC]
           </span>
-          <span className="px-2 py-1 bg-card border border-border rounded-sm text-primary tracking-widest">
+          <span className="px-2 py-1 bg-card border border-border rounded-sm text-primary">
             [SEARCH: COSINE]
           </span>
-          <span className="px-2 py-1 bg-card border border-border rounded-sm text-primary tracking-widest">
+          <span className="px-2 py-1 bg-card border border-border rounded-sm text-primary">
             {faissAvailable ? "[INDEX: FAISS]" : "[INDEX: NUMPY]"}
           </span>
         </div>
@@ -325,20 +330,22 @@ export default function Home() {
   );
 }
 
-type StatusColor = "green" | "orange" | "red" | "primary" | "muted";
-
 function StatusRow({
   label,
   value,
-  color,
-  icon,
+  dot,
+  color = "green",
+  checkmark = false,
+  alert = false,
 }: {
   label: string;
   value: string;
-  color: StatusColor;
-  icon: "dot" | "dot-green" | "dot-red" | "dot-muted" | "alert" | React.ReactNode;
+  dot?: "green" | "red" | "muted";
+  color?: "green" | "orange" | "red" | "primary" | "muted";
+  checkmark?: boolean;
+  alert?: boolean;
 }) {
-  const colorClass: Record<StatusColor, string> = {
+  const colorClass: Record<string, string> = {
     green: "text-green-500",
     orange: "text-orange-400",
     red: "text-red-500",
@@ -346,21 +353,16 @@ function StatusRow({
     muted: "text-muted-foreground",
   };
 
-  const renderIcon = () => {
-    if (icon === "dot" || icon === "dot-green")
-      return <div className="w-2 h-2 rounded-full bg-green-500" />;
-    if (icon === "dot-red") return <div className="w-2 h-2 rounded-full bg-red-500" />;
-    if (icon === "dot-muted") return <div className="w-2 h-2 rounded-full bg-muted-foreground/40" />;
-    if (icon === "alert") return <AlertCircle className="w-4 h-4 text-orange-400" />;
-    return icon;
-  };
-
   return (
     <div className="flex items-center justify-between text-sm">
       <span className="text-muted-foreground text-xs tracking-wider">{label}</span>
-      <div className={`flex items-center gap-2 font-bold text-xs tracking-widest ${colorClass[color]}`}>
+      <div className={`flex items-center gap-2 text-xs font-bold ${colorClass[color]}`}>
         <span>{value}</span>
-        {renderIcon()}
+        {dot === "green" && <div className="w-2 h-2 rounded-full bg-green-500" />}
+        {dot === "red" && <div className="w-2 h-2 rounded-full bg-red-500" />}
+        {dot === "muted" && <div className="w-2 h-2 rounded-full bg-muted-foreground/40" />}
+        {checkmark && <CheckCircle className="w-4 h-4 text-primary" />}
+        {alert && <AlertCircle className="w-4 h-4 text-orange-400" />}
       </div>
     </div>
   );
