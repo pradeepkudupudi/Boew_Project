@@ -132,43 +132,49 @@ export default function Home() {
       <div className="absolute inset-0 pointer-events-none opacity-[0.06]" style={gridStyle} />
 
       {/* Page Header */}
-      <div className="relative z-10 flex items-center justify-between border-b border-border pb-4">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-primary font-bold text-xl tracking-wider">
+      <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-border/70 pb-5">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 rounded-xl bg-primary/10 border border-primary/20 text-primary shadow-xs">
             <Terminal className="w-5 h-5" />
-            <span>{`>_ BOEW_SYS`}</span>
           </div>
-          <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 border border-primary/20 rounded-sm">
-            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-green-500 text-xs font-bold tracking-widest">ONLINE</span>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-bold tracking-tight text-foreground">System Overview</h1>
+              <div className="flex items-center gap-1.5 px-2.5 py-0.5 bg-emerald-500/10 border border-emerald-500/30 rounded-full">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-emerald-400 text-[10px] font-bold tracking-wider">ONLINE</span>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground mt-0.5">Encrypted visual vector retrieval engine</p>
           </div>
         </div>
-        <div className="flex items-center gap-3 text-sm text-muted-foreground">
-          <div className="px-3 py-1 border border-border bg-card rounded-sm flex items-center gap-2">
-            <Shield className="w-4 h-4 text-primary" />
-            <span className="text-foreground tracking-widest">
-              OPERATIVE: {user?.role?.toUpperCase() ?? "GUEST"}
+
+        <div className="flex flex-wrap items-center gap-2 text-xs">
+          <div className="px-3 py-1.5 border border-border/80 bg-card/80 backdrop-blur-md rounded-xl flex items-center gap-2 shadow-xs">
+            <Shield className="w-3.5 h-3.5 text-primary" />
+            <span className="text-foreground font-semibold">
+              {user?.role?.toUpperCase() ?? "GUEST"}
             </span>
           </div>
-          <div className="px-3 py-1 border border-border bg-card rounded-sm tracking-widest">
+          <div className="px-3 py-1.5 border border-border/80 bg-card/80 backdrop-blur-md rounded-xl text-muted-foreground font-mono shadow-xs">
             {format(new Date(), "yyyy-MM-dd // HH:mm")} UTC
           </div>
         </div>
       </div>
 
       {/* Stats Row */}
-      <div className="relative z-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="relative z-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
         {stats.map((s, i) => (
           <div
             key={i}
-            className="bg-card border border-border p-4 rounded-sm flex flex-col gap-2 relative overflow-hidden group"
+            className="bg-card/90 backdrop-blur-md border border-border/80 p-4 rounded-2xl flex flex-col gap-1.5 relative overflow-hidden group shadow-sm hover:border-primary/40 hover:shadow-md transition-all duration-300"
           >
-            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+            <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 group-hover:scale-110 transition-all duration-300">
               <s.icon className="w-12 h-12 text-primary" />
             </div>
-            <div className="text-xs text-primary font-bold tracking-widest">{s.label}</div>
-            <div className="text-3xl text-foreground mt-1">{s.val}</div>
-            <div className="text-xs text-muted-foreground mt-auto pt-2 border-t border-border/50 tracking-widest">
+            <div className="text-[11px] text-muted-foreground font-semibold tracking-wider uppercase">{s.label}</div>
+            <div className="text-2xl font-bold tracking-tight text-foreground font-sans mt-0.5">{s.val}</div>
+            <div className="text-[10px] text-primary/80 font-mono mt-auto pt-2 border-t border-border/40 tracking-wider">
               {s.sub}
             </div>
           </div>
@@ -179,12 +185,12 @@ export default function Home() {
       <div className="relative z-10 grid grid-cols-12 gap-6">
 
         {/* Col 1 (4/12): ENCRYPTION_STATUS */}
-        <div className="col-span-12 lg:col-span-4 bg-card border border-border rounded-sm flex flex-col">
-          <div className="p-4 border-b border-border bg-background/50 flex items-center gap-2">
+        <div className="col-span-12 lg:col-span-4 bg-card/90 backdrop-blur-md border border-border/80 rounded-2xl flex flex-col shadow-sm overflow-hidden">
+          <div className="p-4 border-b border-border/70 bg-muted/20 flex items-center gap-2">
             <Lock className="w-4 h-4 text-primary" />
-            <span className="text-sm font-bold text-primary tracking-widest">ENCRYPTION_STATUS</span>
+            <span className="text-sm font-bold text-foreground tracking-tight">Security & Encryption</span>
           </div>
-          <div className="p-4 flex flex-col gap-4 flex-1">
+          <div className="p-5 flex flex-col gap-4 flex-1">
             <StatusRow label="AES-CBC KEY STATUS" value="ACTIVE" dot="green" />
             <StatusRow label="KEY DERIVATION" value="SHA-256" checkmark />
             <StatusRow
@@ -207,63 +213,61 @@ export default function Home() {
               color={!mlStatus?.modelLoaded ? "green" : "muted"}
             />
 
-            <div className="mt-2 pt-4 border-t border-border flex flex-col gap-1">
-              <span className="text-xs text-muted-foreground tracking-widest">LAST INDEX REBUILD</span>
-              <span className="text-sm font-mono">
+            <div className="mt-2 pt-4 border-t border-border/60 flex flex-col gap-1">
+              <span className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">LAST INDEX REBUILD</span>
+              <span className="text-xs font-mono text-foreground font-medium">
                 {mlLoading ? "..." : formatIndexedAt(mlStatus?.lastIndexedAt)}
               </span>
             </div>
 
             <div className="mt-auto pt-4 flex flex-col gap-2">
               <div className="flex justify-between text-xs">
-                <span className="text-primary font-bold tracking-widest">ENCRYPTION_INTEGRITY</span>
-                <span>100%</span>
+                <span className="text-primary font-bold tracking-wider text-[11px]">ENCRYPTION INTEGRITY</span>
+                <span className="font-mono font-bold text-emerald-400">100%</span>
               </div>
-              <div className="h-1 w-full bg-background rounded-full overflow-hidden">
-                <div className="h-full bg-primary w-full shadow-[0_0_10px_rgba(0,128,255,0.8)]" />
+              <div className="h-1.5 w-full bg-muted/60 rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-primary to-emerald-400 w-full rounded-full shadow-[0_0_12px_rgba(6,182,212,0.6)]" />
               </div>
             </div>
           </div>
         </div>
 
         {/* Col 2 (5/12): RECENT_RETRIEVALS */}
-        <div className="col-span-12 lg:col-span-5 bg-card border border-border rounded-sm flex flex-col">
-          <div className="p-4 border-b border-border bg-background/50 flex items-center gap-2">
+        <div className="col-span-12 lg:col-span-5 bg-card/90 backdrop-blur-md border border-border/80 rounded-2xl flex flex-col shadow-sm overflow-hidden">
+          <div className="p-4 border-b border-border/70 bg-muted/20 flex items-center gap-2">
             <Activity className="w-4 h-4 text-primary" />
-            <span className="text-sm font-bold text-primary tracking-widest">RECENT_RETRIEVALS</span>
+            <span className="text-sm font-bold text-foreground tracking-tight">Recent Visual Queries</span>
           </div>
           <div className="flex-1 overflow-x-auto">
             {histLoading ? (
-              <div className="p-6 text-xs text-muted-foreground tracking-widest text-center animate-pulse">
+              <div className="p-8 text-xs text-muted-foreground tracking-wider text-center animate-pulse">
                 LOADING_HISTORY...
               </div>
             ) : recentHistory.length === 0 ? (
-              <div className="p-6 text-xs text-muted-foreground tracking-widest text-center">
+              <div className="p-8 text-xs text-muted-foreground tracking-wider text-center">
                 NO_RETRIEVALS_YET — EXECUTE A QUERY TO BEGIN
               </div>
             ) : (
               <table className="w-full text-xs text-left whitespace-nowrap">
-                <thead className="bg-background/80 text-muted-foreground border-b border-border">
+                <thead className="bg-muted/10 text-muted-foreground border-b border-border/60">
                   <tr>
-                    <th className="px-4 py-3 font-normal">TIMESTAMP</th>
-                    <th className="px-4 py-3 font-normal">QUERY_ID</th>
-                    <th className="px-4 py-3 font-normal">TOP_MATCH</th>
-                    <th className="px-4 py-3 font-normal">SIM_SCORE</th>
-                    <th className="px-4 py-3 font-normal">STATUS</th>
+                    <th className="px-4 py-3 font-semibold text-[10px] uppercase tracking-wider">TIMESTAMP</th>
+                    <th className="px-4 py-3 font-semibold text-[10px] uppercase tracking-wider">QUERY_ID</th>
+                    <th className="px-4 py-3 font-semibold text-[10px] uppercase tracking-wider">mAP / SCORE</th>
+                    <th className="px-4 py-3 font-semibold text-[10px] uppercase tracking-wider">STATUS</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border">
+                <tbody className="divide-y divide-border/50">
                   {recentHistory.map((row) => (
                     <tr key={row.id} className="hover:bg-primary/5 transition-colors">
-                      <td className="px-4 py-3 text-muted-foreground">{formatTs(row.createdAt)}</td>
-                      <td className="px-4 py-3 font-bold">Q_{String(row.id).padStart(4, "0")}</td>
-                      <td className="px-4 py-3 text-muted-foreground">—</td>
-                      <td className="px-4 py-3 text-primary">
+                      <td className="px-4 py-3 text-muted-foreground font-mono">{formatTs(row.createdAt)}</td>
+                      <td className="px-4 py-3 font-mono font-bold text-primary">Q_{String(row.id).padStart(4, "0")}</td>
+                      <td className="px-4 py-3 font-mono text-foreground font-semibold">
                         {row.mAP != null ? row.mAP.toFixed(3) : "—"}
                       </td>
                       <td className="px-4 py-3">
-                        <span className="text-green-500 flex items-center gap-1">
-                          <CheckCircle className="w-3 h-3" /> COMPLETED
+                        <span className="text-emerald-400 flex items-center gap-1 font-semibold text-[11px]">
+                          <CheckCircle className="w-3.5 h-3.5" /> OK
                         </span>
                       </td>
                     </tr>
@@ -275,29 +279,28 @@ export default function Home() {
         </div>
 
         {/* Col 3 (3/12): DATASET_DISTRIBUTION */}
-        <div className="col-span-12 lg:col-span-3 bg-card border border-border rounded-sm flex flex-col">
-          <div className="p-4 border-b border-border bg-background/50 flex items-center gap-2">
+        <div className="col-span-12 lg:col-span-3 bg-card/90 backdrop-blur-md border border-border/80 rounded-2xl flex flex-col shadow-sm overflow-hidden">
+          <div className="p-4 border-b border-border/70 bg-muted/20 flex items-center gap-2">
             <Database className="w-4 h-4 text-primary" />
-            <span className="text-sm font-bold text-primary tracking-widest">DATASET_DISTRIBUTION</span>
+            <span className="text-sm font-bold text-foreground tracking-tight">Dataset Distribution</span>
           </div>
-          <div className="p-4 flex flex-col gap-4 flex-1">
+          <div className="p-5 flex flex-col gap-4 flex-1">
             {dsLoading ? (
-              <div className="text-xs text-muted-foreground tracking-widest animate-pulse">SCANNING...</div>
+              <div className="text-xs text-muted-foreground tracking-wider animate-pulse">SCANNING...</div>
             ) : categories.length === 0 ? (
-              <div className="text-xs text-muted-foreground tracking-widest">NO_DATA_AVAILABLE</div>
+              <div className="text-xs text-muted-foreground tracking-wider">NO_DATA_AVAILABLE</div>
             ) : (
               categories.map((cat) => (
-                <div key={cat.name} className="flex flex-col gap-1">
-                  <div className="flex justify-between text-xs tracking-widest">
-                    <span className="uppercase text-foreground">{cat.name || "UNCLASSIFIED"}</span>
-                    <span className="text-muted-foreground">{cat.count} images</span>
+                <div key={cat.name} className="flex flex-col gap-1.5">
+                  <div className="flex justify-between text-xs">
+                    <span className="font-semibold text-foreground capitalize">{cat.name || "Unclassified"}</span>
+                    <span className="text-muted-foreground font-mono">{cat.count} items</span>
                   </div>
-                  <div className="flex items-center">
+                  <div className="h-2 w-full bg-muted/50 rounded-full overflow-hidden">
                     <div
-                      className="h-2 bg-primary shadow-[0_0_8px_rgba(0,128,255,0.6)] rounded-sm"
+                      className="h-full bg-gradient-to-r from-primary to-accent rounded-full shadow-[0_0_8px_rgba(6,182,212,0.4)]"
                       style={{ width: `${(cat.count / maxCatCount) * 100}%` }}
                     />
-                    <div className="flex-1 h-2 bg-background border border-border rounded-sm -ml-1" style={{ zIndex: -1 }} />
                   </div>
                 </div>
               ))
@@ -307,22 +310,22 @@ export default function Home() {
       </div>
 
       {/* Bottom status bar */}
-      <div className="relative z-10 border-t border-border pt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground">
+      <div className="relative z-10 border-t border-border/60 pt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground">
         <div className="flex items-center gap-2">
-          <Code className="w-4 h-4" />
+          <Code className="w-4 h-4 text-primary" />
           <span>
-            BOEW_ENGINE v1.0 // ENCRYPTED RETRIEVAL ACTIVE // {extractor} FEATURES: {featureDims} DIMS
+            BOEW_ENGINE v1.0 // {extractor} ({featureDims}-dim)
           </span>
         </div>
-        <div className="flex gap-2">
-          <span className="px-2 py-1 bg-card border border-border rounded-sm text-primary">
-            [ENCRYPTION: AES-CBC]
+        <div className="flex flex-wrap gap-2">
+          <span className="px-2.5 py-1 bg-card/80 border border-border/80 rounded-lg text-primary font-mono text-[11px]">
+            AES-256 CBC
           </span>
-          <span className="px-2 py-1 bg-card border border-border rounded-sm text-primary">
-            [SEARCH: COSINE]
+          <span className="px-2.5 py-1 bg-card/80 border border-border/80 rounded-lg text-primary font-mono text-[11px]">
+            COSINE_SIM
           </span>
-          <span className="px-2 py-1 bg-card border border-border rounded-sm text-primary">
-            {faissAvailable ? "[INDEX: FAISS]" : "[INDEX: NUMPY]"}
+          <span className="px-2.5 py-1 bg-card/80 border border-border/80 rounded-lg text-primary font-mono text-[11px]">
+            {faissAvailable ? "FAISS_INDEX" : "NUMPY_INDEX"}
           </span>
         </div>
       </div>

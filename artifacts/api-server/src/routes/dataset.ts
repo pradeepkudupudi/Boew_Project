@@ -6,6 +6,7 @@ import { DeleteDatasetImageParams, ListDatasetImagesQueryParams } from "@workspa
 import path from "path";
 import fs from "fs";
 import axios from "axios";
+import { saveLocalIndexEntry } from "../lib/feature-extractor";
 
 const router = Router();
 
@@ -23,8 +24,8 @@ router.get("/dataset/images", async (req, res): Promise<void> => {
   ]);
 
   res.json({
-    images,
-    total: totalResult[0]?.count ?? 0,
+    images: images || [],
+    total: totalResult?.[0]?.count ?? (images?.length || 0),
     page,
     limit,
   });
@@ -55,18 +56,32 @@ router.post("/dataset/upload", datasetUpload.array("images", 100), async (req, r
           hasFeatures: false,
         })
         .returning();
+
       inserted.push(img);
 
-      // Try indexing via ML service
+      // Try indexing via ML service first
+      let indexedSuccessfully = false;
       try {
-        await axios.post(`${ML_SERVICE_URL}/index`, { image_path: file.path, image_id: img.id, category });
+        await axios.post(`${ML_SERVICE_URL}/index`, {
+          image_path: file.path,
+          image_id: img.id,
+          category,
+        }, { timeout: 3000 });
+        indexedSuccessfully = true;
+      } catch {
+        // Fall back to built-in local vector indexing
+        indexedSuccessfully = saveLocalIndexEntry(img.id, file.filename, file.path, category);
+      }
+
+      if (indexedSuccessfully) {
         await db.update(datasetImagesTable).set({ hasFeatures: true }).where(eq(datasetImagesTable.id, img.id));
         img.hasFeatures = true;
         indexed++;
-      } catch {
+      } else {
         failed++;
       }
-    } catch {
+    } catch (err) {
+      console.error("Image upload processing error:", err);
       failed++;
     }
   }
@@ -96,7 +111,7 @@ router.delete("/dataset/images/:id", async (req, res): Promise<void> => {
 
   await db.delete(datasetImagesTable).where(eq(datasetImagesTable.id, params.data.id));
 
-  // Notify ML service to remove from index
+  // Notify ML service / clean local index
   try {
     await axios.delete(`${ML_SERVICE_URL}/index/${params.data.id}`);
   } catch {
@@ -126,8 +141,8 @@ router.get("/dataset/stats", async (_req, res): Promise<void> => {
   res.json({
     totalImages: totalResult?.count ?? 0,
     indexedImages: indexedResult?.count ?? 0,
-    categories: categories.map((c) => ({ name: c.name ?? "Uncategorized", count: c.count })),
-    totalSizeMb: Math.round(((sizeResult[0]?.total ?? 0) / (1024 * 1024)) * 100) / 100,
+    categories: (categories || []).map((c: any) => ({ name: c.name ?? "Uncategorized", count: c.count })),
+    totalSizeMb: Math.round(((sizeResult?.[0]?.total ?? 0) / (1024 * 1024)) * 100) / 100,
   });
 });
 

@@ -3,8 +3,16 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "preinstall": "sh -c 'rm -f package-lock.json yarn.lock; case \"$npm_config_user_agent\" in pnpm/*) ;; *) echo \"Use pnpm instead\" >&2; exit 1 ;; esac'",
+    "preinstall": "node -e \"process.exit(0)\"",
+    "dev": "npx pnpm --filter @workspace/api-server --filter @workspace/boew-frontend --parallel run dev",
+    "dev:frontend": "npx pnpm --filter @workspace/boew-frontend run dev",
+    "dev:api": "npx pnpm --filter @workspace/api-server run dev",
+    "dev:all": "npx pnpm -r --parallel run dev",
+    "expo:start": "npx expo start ./artifacts/boew-mobile-expo",
+    "expo:android": "npx expo start ./artifacts/boew-mobile-expo --android",
+    "expo:web": "npx expo start ./artifacts/boew-mobile-expo --web",
     "build": "pnpm run typecheck && pnpm -r --if-present run build",
+    "build:apk": "powershell -ExecutionPolicy Bypass -File ./scripts/build-apk.ps1",
     "typecheck:libs": "tsc --build",
     "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
   },

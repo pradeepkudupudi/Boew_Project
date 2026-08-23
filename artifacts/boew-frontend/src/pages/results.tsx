@@ -3,6 +3,7 @@ import { useLocation, Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Clock, Zap, Target, Gauge, Maximize } from "lucide-react";
+import { resolveApiUrl } from "@/lib/api-config";
 import type { RetrievalResult } from "@workspace/api-client-react";
 
 export default function Results() {
@@ -61,7 +62,7 @@ export default function Results() {
             <CardContent className="p-0 border-b border-border">
               <div className="aspect-square relative bg-black flex items-center justify-center p-2">
                 <img 
-                  src={result.queryImagePath.startsWith('/api') ? result.queryImagePath : `/api/uploads/${result.queryImagePath.split('/').pop()}`} 
+                  src={resolveApiUrl(result.queryImagePath.startsWith('/api') ? result.queryImagePath : `/api/uploads/${result.queryImagePath.split('/').pop()}`)} 
                   alt="Query" 
                   className="max-w-full max-h-full object-contain border border-primary/30"
                 />
@@ -125,7 +126,7 @@ export default function Results() {
                     </div>
                     <div className="aspect-square bg-muted/10 relative overflow-hidden border-b border-border">
                       <img 
-                        src={`/api/images/${match.filename}`} 
+                        src={resolveApiUrl(`/api/images/${match.filename}`)} 
                         alt={match.filename}
                         className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
                         loading="lazy"

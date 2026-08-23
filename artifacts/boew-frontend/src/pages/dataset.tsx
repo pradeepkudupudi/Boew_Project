@@ -7,6 +7,7 @@ import { Trash2, Image as ImageIcon, SearchX } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
+import { resolveApiUrl } from "@/lib/api-config";
 
 export default function Dataset() {
   const [page, setPage] = useState(1);
@@ -64,7 +65,7 @@ export default function Dataset() {
             <Card key={img.id} className="rounded-none border-border bg-card overflow-hidden group relative">
               <div className="aspect-square relative bg-muted/20 border-b border-border">
                 <img 
-                  src={`/api/images/${img.filename}`} 
+                  src={resolveApiUrl(`/api/images/${img.filename}`)} 
                   alt={img.originalName}
                   className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
                   loading="lazy"

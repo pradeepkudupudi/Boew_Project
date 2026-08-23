@@ -7,6 +7,8 @@ out-tsc
 *.tsbuildinfo
 .expo
 .expo-shared
+expo-qr.png
+*.png
 
 # dependencies
 node_modules
@@ -26,6 +28,29 @@ node_modules
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+
+# Android
+.gradle/
+**/build/
+**/android/app/build/
+*.apk
+*.aab
+local.properties
+.cxx/
+
+# Python & ML
+__pycache__/
+*.pyc
+
+# Local DB & Upload Caches
+local_db.json
+artifacts/api-server/local_db.json
+artifacts/api-server/dataset/
+artifacts/api-server/uploads/
+artifacts/api-server/encrypted_features/
+artifacts/api-server/faiss_index/
+encrypted_features/
+faiss_index/
 
 # misc
 /.sass-cache

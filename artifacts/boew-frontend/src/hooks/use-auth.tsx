@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { useGetMe, getGetMeQueryKey } from "@workspace/api-client-react";
+import { useGetMe, getGetMeQueryKey, setAuthTokenGetter } from "@workspace/api-client-react";
 import type { User } from "@workspace/api-client-react";
+import { resolveApiUrl } from "@/lib/api-config";
 
 interface AuthContextType {
   token: string | null;
@@ -12,18 +13,36 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Patch fetch to automatically attach the token
+// Setup token getter for generated query client
+setAuthTokenGetter(() => localStorage.getItem("boew_token"));
+
+// Patch fetch to automatically resolve API URL and attach the auth token
 const originalFetch = window.fetch;
 window.fetch = async (input, init) => {
+  let resolvedInput = input;
+  if (typeof input === "string" && input.startsWith("/")) {
+    resolvedInput = resolveApiUrl(input);
+  } else if (typeof Request !== "undefined" && input instanceof Request && input.url.startsWith("/")) {
+    resolvedInput = new Request(resolveApiUrl(input.url), input);
+  }
+
   const token = localStorage.getItem("boew_token");
   if (token) {
     init = init || {};
-    init.headers = {
-      ...init.headers,
-      Authorization: `Bearer ${token}`,
-    };
+    if (init.headers instanceof Headers) {
+      if (!init.headers.has("Authorization")) {
+        init.headers.set("Authorization", `Bearer ${token}`);
+      }
+    } else if (Array.isArray(init.headers)) {
+      init.headers = [...init.headers, ["Authorization", `Bearer ${token}`]];
+    } else {
+      init.headers = {
+        ...(init.headers || {}),
+        Authorization: `Bearer ${token}`,
+      };
+    }
   }
-  return originalFetch(input, init);
+  return originalFetch(resolvedInput, init);
 };
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -48,7 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    // If token present but user fetch returned nothing (silently handle)
+    // If token present but user fetch returned nothing
   }, [token, isLoading, user]);
 
   return (

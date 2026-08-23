@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Clock, ExternalLink } from "lucide-react";
 import { format } from "date-fns";
+import { resolveApiUrl } from "@/lib/api-config";
 
 export default function History() {
   const [page, setPage] = useState(1);
@@ -56,7 +57,7 @@ export default function History() {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <div className="w-8 h-8 bg-muted/20 border border-border flex-shrink-0">
-                          <img src={`/api/uploads/${row.queryImagePath.split('/').pop()}`} alt="query" className="w-full h-full object-cover opacity-80" />
+                          <img src={resolveApiUrl(`/api/uploads/${row.queryImagePath.split('/').pop()}`)} alt="query" className="w-full h-full object-cover opacity-80" />
                         </div>
                       </div>
                     </TableCell>
@@ -125,7 +126,7 @@ export default function History() {
                       <div key={match.imageId} className="border border-border relative group">
                         <div className="absolute top-0 left-0 bg-primary text-primary-foreground text-[8px] font-bold px-1 z-10">#{match.rank}</div>
                         <div className="aspect-square bg-black p-1">
-                          <img src={`/api/images/${match.filename}`} alt="match" className="w-full h-full object-cover opacity-80" />
+                          <img src={resolveApiUrl(`/api/images/${match.filename}`)} alt="match" className="w-full h-full object-cover opacity-80" />
                         </div>
                         <div className="p-1 bg-card text-center text-[10px] text-primary font-bold border-t border-border">
                           {(match.similarityScore * 100).toFixed(1)}%
