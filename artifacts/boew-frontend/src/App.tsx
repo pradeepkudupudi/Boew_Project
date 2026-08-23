@@ -1,8 +1,8 @@
-import { Switch, Route, Router as WouterRouter, Redirect } from "wouter";
+import { Switch, Route, Router as WouterRouter } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthProvider, useAuth } from "@/hooks/use-auth";
+import { AuthProvider } from "@/hooks/use-auth";
 import { Layout } from "@/components/layout";
 import NotFound from "@/pages/not-found";
 
@@ -19,12 +19,6 @@ import Admin from "@/pages/admin";
 const queryClient = new QueryClient();
 
 function ProtectedRoute({ component: Component, adminOnly = false }: { component: React.ComponentType, adminOnly?: boolean }) {
-  const { user, isLoading } = useAuth();
-
-  if (isLoading) return <div className="flex h-screen w-full items-center justify-center bg-background font-mono text-primary text-sm tracking-widest">INITIALIZING_SESSION...</div>;
-  if (!user) return <Redirect to="/login" />;
-  if (adminOnly && user.role !== "admin") return <Redirect to="/" />;
-
   return (
     <Layout>
       <Component />

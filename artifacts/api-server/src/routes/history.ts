@@ -1,18 +1,15 @@
 import { Router } from "express";
 import { db, retrievalHistoryTable } from "@workspace/db";
 import { eq, count, desc } from "drizzle-orm";
-import { requireAuth } from "../lib/auth";
 import { GetHistoryItemParams, ListHistoryQueryParams } from "@workspace/api-zod";
 
 const router = Router();
 
-router.get("/history", requireAuth, async (req, res): Promise<void> => {
+router.get("/history", async (req, res): Promise<void> => {
   const parsed = ListHistoryQueryParams.safeParse(req.query);
   const page = parsed.success ? (parsed.data.page ?? 1) : 1;
   const limit = parsed.success ? (parsed.data.limit ?? 10) : 10;
   const offset = (page - 1) * limit;
-
-  const userId = req.user!.userId;
 
   const [history, totalResult] = await Promise.all([
     db
@@ -30,14 +27,13 @@ router.get("/history", requireAuth, async (req, res): Promise<void> => {
         mAP: retrievalHistoryTable.mAP,
       })
       .from(retrievalHistoryTable)
-      .where(eq(retrievalHistoryTable.userId, userId))
       .orderBy(desc(retrievalHistoryTable.createdAt))
       .offset(offset)
       .limit(limit),
     db
       .select({ count: count() })
       .from(retrievalHistoryTable)
-      .where(eq(retrievalHistoryTable.userId, userId)),
+      ,
   ]);
 
   res.json({
@@ -48,7 +44,7 @@ router.get("/history", requireAuth, async (req, res): Promise<void> => {
   });
 });
 
-router.get("/history/:id", requireAuth, async (req, res): Promise<void> => {
+router.get("/history/:id", async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const params = GetHistoryItemParams.safeParse({ id: parseInt(raw, 10) });
   if (!params.success) {
@@ -61,7 +57,7 @@ router.get("/history/:id", requireAuth, async (req, res): Promise<void> => {
     .from(retrievalHistoryTable)
     .where(eq(retrievalHistoryTable.id, params.data.id));
 
-  if (!item || (item.userId !== req.user!.userId && req.user!.role !== "admin")) {
+  if (!item) {
     res.status(404).json({ error: "History item not found" });
     return;
   }

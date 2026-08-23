@@ -1,7 +1,6 @@
 import { Router } from "express";
 import { db, usersTable, datasetImagesTable, retrievalHistoryTable } from "@workspace/db";
 import { count, avg, sql, eq } from "drizzle-orm";
-import { requireAuth } from "../lib/auth";
 import axios from "axios";
 import { logger } from "../lib/logger";
 
@@ -9,7 +8,7 @@ const router = Router();
 
 const ML_SERVICE_URL = process.env.ML_SERVICE_URL ?? "http://localhost:8000";
 
-router.get("/admin/stats", requireAuth, async (_req, res): Promise<void> => {
+router.get("/admin/stats", async (_req, res): Promise<void> => {
   const [userCount] = await db.select({ count: count() }).from(usersTable);
   const [totalImages] = await db.select({ count: count() }).from(datasetImagesTable);
   const [indexedImages] = await db
@@ -44,7 +43,7 @@ router.get("/admin/stats", requireAuth, async (_req, res): Promise<void> => {
   });
 });
 
-router.get("/admin/ml-status", requireAuth, async (_req, res): Promise<void> => {
+router.get("/admin/ml-status", async (_req, res): Promise<void> => {
   try {
     const response = await axios.get(`${ML_SERVICE_URL}/status`, { timeout: 3000 });
     res.json({
@@ -65,7 +64,7 @@ router.get("/admin/ml-status", requireAuth, async (_req, res): Promise<void> => 
   }
 });
 
-router.post("/admin/rebuild-index", requireAuth, async (_req, res): Promise<void> => {
+router.post("/admin/rebuild-index", async (_req, res): Promise<void> => {
   try {
     const response = await axios.post(`${ML_SERVICE_URL}/rebuild-index`, {}, { timeout: 30000 });
     res.json({

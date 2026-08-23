@@ -1,6 +1,5 @@
 import { Router } from "express";
 import { db, retrievalHistoryTable } from "@workspace/db";
-import { requireAuth, optionalAuth } from "../lib/auth";
 import { queryUpload } from "../lib/upload";
 import axios from "axios";
 import { logger } from "../lib/logger";
@@ -9,7 +8,7 @@ const router = Router();
 
 const ML_SERVICE_URL = process.env.ML_SERVICE_URL ?? "http://localhost:8000";
 
-router.post("/retrieve", optionalAuth, queryUpload.single("image"), async (req, res): Promise<void> => {
+router.post("/retrieve", queryUpload.single("image"), async (req, res): Promise<void> => {
   const file = req.file;
   if (!file) {
     res.status(400).json({ error: "No image file provided" });

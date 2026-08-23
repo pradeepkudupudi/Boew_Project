@@ -1,7 +1,6 @@
 import { Router } from "express";
 import { db, datasetImagesTable } from "@workspace/db";
 import { eq, count, sql } from "drizzle-orm";
-import { requireAuth } from "../lib/auth";
 import { datasetUpload } from "../lib/upload";
 import { DeleteDatasetImageParams, ListDatasetImagesQueryParams } from "@workspace/api-zod";
 import path from "path";
@@ -31,7 +30,7 @@ router.get("/dataset/images", async (req, res): Promise<void> => {
   });
 });
 
-router.post("/dataset/upload", requireAuth, datasetUpload.array("images", 100), async (req, res): Promise<void> => {
+router.post("/dataset/upload", datasetUpload.array("images", 100), async (req, res): Promise<void> => {
   const files = req.files as Express.Multer.File[] | undefined;
   if (!files || files.length === 0) {
     res.status(400).json({ error: "No image files provided" });
@@ -75,7 +74,7 @@ router.post("/dataset/upload", requireAuth, datasetUpload.array("images", 100), 
   res.status(201).json({ uploaded: inserted.length, indexed, failed, images: inserted });
 });
 
-router.delete("/dataset/images/:id", requireAuth, async (req, res): Promise<void> => {
+router.delete("/dataset/images/:id", async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const params = DeleteDatasetImageParams.safeParse({ id: parseInt(raw, 10) });
   if (!params.success) {
