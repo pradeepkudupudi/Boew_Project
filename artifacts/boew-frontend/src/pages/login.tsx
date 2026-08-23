@@ -12,8 +12,8 @@ import { Terminal } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
+  email: z.string().trim().toLowerCase().email("Enter a valid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
 export default function Login() {
@@ -33,15 +33,21 @@ export default function Login() {
   const loginMutation = useLogin();
 
   const onSubmit = (values: z.infer<typeof loginSchema>) => {
-    loginMutation.mutate({ data: values }, {
+    const credentials = {
+      email: values.email.trim().toLowerCase(),
+      password: values.password,
+    };
+
+    loginMutation.mutate({ data: credentials }, {
       onSuccess: (data) => {
         setAuthToken(data.token);
         setLocation("/");
       },
       onError: (err) => {
+        const errorData = err.data as { error?: string } | null | undefined;
         toast({
           title: "AUTHENTICATION_FAILED",
-          description: (err.data as { error?: string })?.error || "Invalid credentials",
+          description: errorData?.error || err.message || "Invalid credentials",
           variant: "destructive",
         });
       }
@@ -68,7 +74,7 @@ export default function Login() {
                 <FormItem>
                   <FormLabel className="text-muted-foreground uppercase tracking-widest text-xs">OPERATIVE_ID (EMAIL)</FormLabel>
                   <FormControl>
-                    <Input {...field} className="font-mono bg-background border-border text-primary rounded-none focus-visible:ring-primary" placeholder="Enter email address..." />
+                    <Input {...field} autoComplete="email" className="font-mono bg-background border-border text-primary rounded-none focus-visible:ring-primary" placeholder="Enter email address..." />
                   </FormControl>
                   <FormMessage className="text-destructive" />
                 </FormItem>
@@ -81,7 +87,7 @@ export default function Login() {
                 <FormItem>
                   <FormLabel className="text-muted-foreground uppercase tracking-widest text-xs">ACCESS_CODE (PASSWORD)</FormLabel>
                   <FormControl>
-                    <Input type="password" {...field} className="font-mono bg-background border-border text-primary rounded-none focus-visible:ring-primary" placeholder="Enter password..." />
+                    <Input type="password" {...field} autoComplete="current-password" className="font-mono bg-background border-border text-primary rounded-none focus-visible:ring-primary" placeholder="Enter password..." />
                   </FormControl>
                   <FormMessage className="text-destructive" />
                 </FormItem>
