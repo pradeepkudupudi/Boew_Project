@@ -2,3 +2,4 @@
 - [scikit-image install](skimage-install.md) — pip blocked system-wide; use `pip install --target .pythonlibs`; add `.pythonlibs` to sys.path in the ML service at startup.
 - [HOG feature extractor](hog-extractor.md) — HOG + color histogram (2700 dims) replaces pixel-stats mock; extractor tag in `faiss_index/extractor_tag.txt` triggers auto re-index on upgrade.
 - [Metadata restoration](metadata-restoration.md) — ML service metadata.json can be lost on extractor upgrade; restore by calling `/index` per image using the DB rows + `artifacts/api-server/dataset/<filename>` paths.
+- [Auth input normalization](auth-input-normalization.md) — Normalize registration and login identifiers before schema validation so copied whitespace does not cause avoidable failures.

@@ -12,9 +12,9 @@ import { Terminal } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const registerSchema = z.object({
-  name: z.string().min(1),
-  email: z.string().email(),
-  password: z.string().min(6),
+  name: z.string().trim().min(1, "Name is required"),
+  email: z.string().trim().toLowerCase().email("Enter a valid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
 export default function Register() {
@@ -40,9 +40,10 @@ export default function Register() {
         setLocation("/");
       },
       onError: (err) => {
+        const errorData = err.data as { error?: string } | null | undefined;
         toast({
           title: "REGISTRATION_FAILED",
-          description: (err.data as { error?: string })?.error || "Error registering operative",
+          description: errorData?.error || err.message || "Error registering operative",
           variant: "destructive",
         });
       }

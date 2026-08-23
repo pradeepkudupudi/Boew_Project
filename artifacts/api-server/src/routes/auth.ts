@@ -8,12 +8,22 @@ import { RegisterBody, LoginBody } from "@workspace/api-zod";
 const router = Router();
 
 router.post("/auth/register", async (req, res): Promise<void> => {
-  const parsed = RegisterBody.safeParse(req.body);
+  const normalizedBody =
+    req.body && typeof req.body === "object"
+      ? {
+          ...req.body,
+          email: typeof req.body.email === "string" ? req.body.email.trim().toLowerCase() : req.body.email,
+          name: typeof req.body.name === "string" ? req.body.name.trim() : req.body.name,
+        }
+      : req.body;
+  const parsed = RegisterBody.safeParse(normalizedBody);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  const { email, password, name } = parsed.data;
+  const email = parsed.data.email.trim().toLowerCase();
+  const name = parsed.data.name.trim();
+  const { password } = parsed.data;
 
   const [existing] = await db.select().from(usersTable).where(eq(usersTable.email, email));
   if (existing) {
@@ -33,7 +43,14 @@ router.post("/auth/register", async (req, res): Promise<void> => {
 });
 
 router.post("/auth/login", async (req, res): Promise<void> => {
-  const parsed = LoginBody.safeParse(req.body);
+  const normalizedBody =
+    req.body && typeof req.body === "object"
+      ? {
+          ...req.body,
+          email: typeof req.body.email === "string" ? req.body.email.trim().toLowerCase() : req.body.email,
+        }
+      : req.body;
+  const parsed = LoginBody.safeParse(normalizedBody);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
     return;
