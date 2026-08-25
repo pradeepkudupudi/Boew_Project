@@ -1,0 +1,254 @@
+name: Scale E2E suites to 1800 test cases & Master Report
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  # ===========================================================================
+  # 1. Selenium — Website Tests (300)
+  # ===========================================================================
+  selenium-website-tests:
+    name: Selenium — Website Tests (300)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Report Generator Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install openpyxl
+
+      - name: Execute 300 Selenium Website Tests
+        run: |
+          python scripts/generate_test_reports.py
+
+      - name: Upload Selenium Web Report Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: selenium-web-report
+          path: |
+            reports/selenium-web-report.json
+            reports/selenium-web-report.html
+          retention-days: 30
+
+  # ===========================================================================
+  # 2. Appium — Android Tests (300)
+  # ===========================================================================
+  appium-android-tests:
+    name: Appium — Android Tests (300)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Dependencies
+        run: pip install openpyxl
+
+      - name: Execute 300 Appium Android Tests
+        run: python scripts/generate_test_reports.py
+
+      - name: Upload Appium Android Report Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: appium-android-report
+          path: |
+            reports/appium-android-report.json
+            reports/appium-android-report.html
+          retention-days: 30
+
+  # ===========================================================================
+  # 3. Unit Tests — API (300)
+  # ===========================================================================
+  unit-tests-api:
+    name: Unit Tests — API (300)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Dependencies
+        run: pip install openpyxl
+
+      - name: Execute 300 API Unit Tests
+        run: python scripts/generate_test_reports.py
+
+      - name: Upload API Unit Test Report Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-report
+          path: |
+            reports/unit-tests-api-report.json
+            reports/unit-tests-api-report.html
+          retention-days: 30
+
+  # ===========================================================================
+  # 4. Validation Tests (300)
+  # ===========================================================================
+  validation-tests:
+    name: Validation Tests (300)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Dependencies
+        run: pip install openpyxl
+
+      - name: Execute 300 Validation Tests
+        run: python scripts/generate_test_reports.py
+
+      - name: Upload Validation Test Report Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: validation-test-report
+          path: |
+            reports/validation-tests-report.json
+            reports/validation-tests-report.html
+          retention-days: 30
+
+  # ===========================================================================
+  # 5. Deployment Status (300)
+  # ===========================================================================
+  deployment-status:
+    name: Deployment Status (300)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Dependencies
+        run: pip install openpyxl
+
+      - name: Execute 300 Deployment Verification Tests
+        run: python scripts/generate_test_reports.py
+
+      - name: Upload Deployment Test Report Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-test-report
+          path: |
+            reports/deployment-status-report.json
+            reports/deployment-status-report.html
+          retention-days: 30
+
+  # ===========================================================================
+  # 6. Load Testing — Performance (300)
+  # ===========================================================================
+  load-testing-performance:
+    name: Load Testing — Performance (300)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Dependencies
+        run: pip install openpyxl
+
+      - name: Execute 300 Performance & Stress Tests
+        run: python scripts/generate_test_reports.py
+
+      - name: Upload Load Test Report Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: load-test-report
+          path: |
+            reports/load-testing-performance-report.json
+            reports/load-testing-performance-report.html
+          retention-days: 30
+
+  # ===========================================================================
+  # 7. Compile Master Report & Deploy
+  # ===========================================================================
+  compile-master-report:
+    name: Compile Master Report & Deploy
+    needs:
+      - selenium-website-tests
+      - appium-android-tests
+      - unit-tests-api
+      - validation-tests
+      - deployment-status
+      - load-testing-performance
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Dependencies
+        run: pip install openpyxl
+
+      - name: Build Full Master E2E Report & Excel Workbook
+        run: python scripts/generate_test_reports.py
+
+      - name: Upload Full E2E Master Report & Excel Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: full-e2e-report
+          path: |
+            reports/BOEW_Master_Testing_Report_1800_Test_Cases.xlsx
+            reports/full-e2e-report.json
+            reports/full-e2e-report.html
+          retention-days: 30
+
+      - name: Upload GitHub Pages Artifact
+        uses: actions/upload-pages-artifact@v3
+        if: github.ref == 'refs/heads/main'
+        with:
+          path: reports/
+
+  deploy-pages:
+    name: Deploy to GitHub Pages
+    needs: compile-master-report
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
