@@ -1,14 +1,16 @@
-import { Capacitor } from "@capacitor/core";
 import { setBaseUrl as setClientBaseUrl } from "@workspace/api-client-react";
 
 export const STORAGE_KEY_API_BASE_URL = "boew_api_base_url";
 
 export function isNativePlatform(): boolean {
-  try {
-    return Capacitor.isNativePlatform();
-  } catch {
-    return false;
-  }
+  if (typeof window === "undefined") return false;
+  // Detect pure Native Android WebView bridge or user-agent
+  return (
+    (window as any).AndroidBridge !== undefined ||
+    navigator.userAgent.includes("BOEW-Android") ||
+    window.location.protocol === "file:" ||
+    (window.location.hostname === "localhost" && window.location.port === "")
+  );
 }
 
 export function getDefaultApiBaseUrl(): string {

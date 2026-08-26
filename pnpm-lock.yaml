@@ -234,15 +234,9 @@ importers:
 
   artifacts/boew-frontend:
     dependencies:
-      '@capacitor/android':
-        specifier: ^7.6.8
-        version: 7.6.8(@capacitor/core@7.6.8)
-      '@capacitor/cli':
-        specifier: ^7.6.8
-        version: 7.6.8(supports-color@8.1.1)
-      '@capacitor/core':
-        specifier: ^7.6.8
-        version: 7.6.8
+      '@vitejs/plugin-react':
+        specifier: catalog:
+        version: 4.3.4(vite@6.2.0)
     devDependencies:
       '@hookform/resolvers':
         specifier: ^3.10.0

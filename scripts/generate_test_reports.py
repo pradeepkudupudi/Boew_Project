@@ -35,7 +35,7 @@ SUITES = [
         "id": "appium-android",
         "name": "Appium — Android Tests",
         "code": "AND",
-        "target": "Android Mobile App (Capacitor & Expo Native)",
+        "target": "Android Mobile App (Gradle Native & Expo Native)",
         "count": 300,
         "duration_sec": 31.2,
         "categories": [
@@ -97,7 +97,7 @@ SUITES = [
         "categories": [
             ("Node.js Runtime & Engine Compatibility", 30),
             ("Vite Production Bundle Compilation", 40),
-            ("Capacitor Native Android Asset Sync", 40),
+            ("Gradle Native Android Asset Sync", 40),
             ("Gradle Android APK Compilation Lifecycle", 45),
             ("Port Bindings (0.0.0.0:5000, 5173, 8081)", 35),
             ("Environment Fallback (DATABASE_URL & PORT)", 30),
@@ -200,7 +200,7 @@ def generate_all_test_cases():
         "total_duration_sec": round(total_duration, 2),
         "target_environments": [
             "Web Browser (Chrome / Edge / Firefox)",
-            "Android Mobile (Capacitor Native APK + Expo)",
+            "Android Mobile (Gradle Native APK + Expo)",
             "API Server (Node.js Express + Standalone Vector DB)"
         ],
         "suites": all_suites_data

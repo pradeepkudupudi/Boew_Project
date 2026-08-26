@@ -7,7 +7,8 @@ Write-Host "==========================================" -ForegroundColor Cyan
 
 $WorkspaceRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
 $FrontendDir = Join-Path $WorkspaceRoot "artifacts\boew-frontend"
-$AndroidDir = Join-Path $FrontendDir "android"
+$AndroidDir = Join-Path $WorkspaceRoot "android"
+$AndroidAssetsDir = Join-Path $AndroidDir "app\src\main\assets\public"
 
 # 1. Setup Java Environment
 $JbrPath = "C:\Program Files\Android\Android Studio\jbr"
@@ -29,25 +30,25 @@ if (Test-Path $SdkPath) {
     Write-Host "[2/4] Using Android SDK: $SdkPath" -ForegroundColor Green
 }
 
-# 3. Build Web Assets
-Write-Host "[3/4] Compiling Web Frontend with Vite..." -ForegroundColor Cyan
+# 3. Build & Sync Web Assets to Android
+Write-Host "[3/4] Compiling Web Frontend & Syncing to Native Assets..." -ForegroundColor Cyan
 Push-Location $FrontendDir
 try {
-    & npx pnpm run build
+    & npx vite build --config vite.config.ts
     if ($LASTEXITCODE -ne 0) {
         throw "Frontend build failed with code $LASTEXITCODE"
     }
 
-    Write-Host "Syncing assets to Android native project..." -ForegroundColor Cyan
-    & npx cap sync android
-    if ($LASTEXITCODE -ne 0) {
-        throw "Capacitor sync failed with code $LASTEXITCODE"
+    Write-Host "Syncing Vite dist assets to Android native assets folder..." -ForegroundColor Cyan
+    if (-not (Test-Path $AndroidAssetsDir)) {
+        New-Item -ItemType Directory -Path $AndroidAssetsDir -Force | Out-Null
     }
+    Copy-Item -Path (Join-Path $FrontendDir "dist\*") -Destination "$AndroidAssetsDir\" -Recurse -Force
 } finally {
     Pop-Location
 }
 
-# 4. Compile Android APK with Gradle
+# 4. Compile Native Android APK with Gradle
 Write-Host "[4/4] Compiling Android APK with Gradle..." -ForegroundColor Cyan
 Push-Location $AndroidDir
 try {
