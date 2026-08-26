@@ -13,7 +13,13 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
+import androidx.webkit.ProxyConfig
+import androidx.webkit.ProxyController
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import androidx.webkit.WebViewAssetLoader
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import androidx.webkit.WebViewAssetLoader.AssetsPathHandler
+import androidx.webkit.WebViewFeature
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -25,6 +31,12 @@ class MainActivity : AppCompatActivity() {
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
     private var fileChooserCallback: ValueCallback<Array<Uri>>? = null
     private var cameraPhotoPath: String? = null
+
+    private val assetLoader by lazy {
+        WebViewAssetLoader.Builder()
+            .addPathHandler("/public/", AssetsPathHandler(this))
+            .build()
+    }
 
     private val fileChooserLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -83,6 +95,8 @@ class MainActivity : AppCompatActivity() {
         settings.databaseEnabled = true
         settings.allowFileAccess = true
         settings.allowContentAccess = true
+        settings.allowFileAccessFromFileURLs = true
+        settings.allowUniversalAccessFromFileURLs = true
         settings.loadWithOverviewMode = true
         settings.useWideViewPort = true
         settings.setSupportZoom(true)
@@ -96,6 +110,13 @@ class MainActivity : AppCompatActivity() {
         webView.addJavascriptInterface(WebAppInterface(this), "AndroidBridge")
 
         webView.webViewClient = object : WebViewClient() {
+            override fun shouldInterceptRequest(
+                view: WebView?,
+                request: WebResourceRequest?
+            ): WebResourceResponse? {
+                return request?.let { assetLoader.shouldInterceptRequest(it.url) }
+            }
+
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
                 swipeRefreshLayout.isRefreshing = false
@@ -154,9 +175,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadApplication() {
-        // Load local bundled assets from app/src/main/assets/public/index.html or dev server
-        val assetFile = File(applicationContext.filesDir.parent, "assets/public/index.html")
-        webView.loadUrl("file:///android_asset/public/index.html")
+        webView.loadUrl("https://appassets.androidview.sc/public/index.html")
     }
 
     @Throws(IOException::class)
